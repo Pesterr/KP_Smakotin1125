@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace WarehouseAccounting.Model
 {
@@ -10,6 +11,7 @@ namespace WarehouseAccounting.Model
         private DateTime _date;
         private string _order_product;
         private int _quantity;
+        private decimal _fixedPrice;
 
         public int order_id
         {
@@ -61,29 +63,29 @@ namespace WarehouseAccounting.Model
             }
         }
 
-        // Вспомогательное свойство для отображения названия товара
         public string ProductName
         {
             get
             {
                 if (int.TryParse(order_product, out int productId))
                 {
-                    var product = ProductsDB.GetDb().SelectAll().FirstOrDefault(p => p.product_id.ToString() == order_product);
+                    var product = ProductsDB.GetDb().SelectAll()
+                        .FirstOrDefault(p => p.product_id.ToString() == order_product);
                     return product?.product_name ?? "Неизвестный товар";
                 }
                 return "Ошибка ID";
             }
         }
-        public decimal ProductPrice
+
+        public decimal ProductPrice => FixedPrice;
+
+        public decimal FixedPrice
         {
-            get
+            get => _fixedPrice;
+            set
             {
-                if (int.TryParse(order_product, out int productId))
-                {
-                    var product = ProductsDB.GetDb().SelectAll().FirstOrDefault(p => p.product_id.ToString() == order_product);
-                    return product?.price ?? 0;
-                }
-                return 0;
+                _fixedPrice = value;
+                OnPropertyChanged();
             }
         }
 

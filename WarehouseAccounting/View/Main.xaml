@@ -19,22 +19,46 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center">
+                        <TextBlock Text="Поиск" VerticalAlignment="Center"/>
+                        <TextBox Width="250" Height="30"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="Cортировка по дате:" VerticalAlignment="Center" Margin="5"/>
+                        <DatePicker SelectedDate="{Binding SelectedDate}"/>
+                        <Button Content="История заказов" Width="120" Margin="5" Background="#B9E0A5"
+                                Click="ShowOrderHistory_Click"/>
+                    </StackPanel>
+                    
+                    
 
                     <!-- Панель действий -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="0" HorizontalAlignment="Right" Margin="5">
-                        <Button Content="Добавить заказ" Width="120" Margin="5" Click="OrderAdd" Background="#B9E0A5"/>
-                        <Button Content="Редактировать" Width="120" Margin="5" Background="#B9E0A5"
-                    Command="{Binding EditOrderCommand}"
-                    CommandParameter="{Binding SelectedOrder}"/>
-                        <Button Content="Обновить" Width="100" Margin="5"
-                    Command="{Binding RefreshOrderCommand}" Background="#B9E0A5"/>
-                        <Button Content="Удалить" Width="100" Margin="5" Background="#F8CECC"
-                    Command="{Binding DeleteOrderCommand}"
-                    CommandParameter="{Binding SelectedOrder}"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <StackPanel Orientation="Vertical" Margin="15" VerticalAlignment="Center">
+                            <TextBlock Text="Количество заказов:" FontSize="15" />
+                            <TextBlock Text="{Binding TotalOrders}" FontSize="15"/>
+
+                            <TextBlock Text="Общая сумма заказов:" FontSize="15" />
+                            <TextBlock Text="{Binding TotalAmount}" FontSize="15"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="5">
+                            <Button Content="Добавить заказ" Width="120" Height="35" Margin="5" Click="OrderAdd" Background="#B9E0A5"/>
+                            <Button Content="Редактировать" Width="120" Height="35" Margin="5" Background="#B9E0A5"
+                                    Command="{Binding EditOrderCommand}"
+                                    CommandParameter="{Binding SelectedOrder}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="5" >
+                            <Button Content="Обновить" Width="100" Margin="5" Height="35"
+                                    Command="{Binding RefreshOrderCommand}" Background="#B9E0A5"/>
+                            <Button Content="Удалить" Width="100" Margin="5" Height="35" Background="#F8CECC"
+                                    Command="{Binding DeleteOrderCommand}"
+                                    CommandParameter="{Binding SelectedOrder}"/>
+                        </StackPanel>
+                        
                     </StackPanel>
+                    
 
                     <!-- Таблица заказов -->
-                    <DataGrid ItemsSource="{Binding Orders}" 
+                    <DataGrid ItemsSource="{Binding FilteredOrders}" 
                           SelectedItem="{Binding SelectedOrder}"
                           AutoGenerateColumns="False" 
                           Grid.Row="1" Margin="5" Background="#D5E8D4">
@@ -45,6 +69,7 @@
                             <DataGridTextColumn Header="Количество" Binding="{Binding quantity}" Width="100"/>
                             <DataGridTextColumn Header="Цена товара" Binding="{Binding ProductPrice}" Width="100"/>
                             <DataGridTextColumn Header="Дата заказа" Binding="{Binding date, StringFormat={}{0:dd.MM.yyyy}}" Width="120"/>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding Total}" Width="100"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -177,6 +202,48 @@
                 VerticalAlignment="Bottom"
                 Grid.Column="3"
                 Command="{Binding SaveCommand}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Аналитика по завершенным заказам" Width="230" Height="25" Background="#B9E0A5" x:Name="AnalyticsTabItem">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Панель параметров -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="5" VerticalAlignment="Center">
+                        <TextBlock Text="Период:" VerticalAlignment="Center"/>
+                        <DatePicker SelectedDate="{Binding StartDate}" Margin="5" VerticalAlignment="Center"/>
+                        <TextBlock Text="—" VerticalAlignment="Center" Margin="5,0"/>
+                        <DatePicker SelectedDate="{Binding EndDate}" Margin="5" VerticalAlignment="Center"/>
+
+                        <Button Content="Сформировать отчет" Command="{Binding GenerateReportCommand}" Margin="10,0" Height="40" Background="#B9E0A5"/>
+                        <Button Content="Выгрузить в Excel" 
+                                Command="{Binding ExportToExcelCommand}" 
+                                Margin="10,0" 
+                                Background="#B9E0A5"
+                                Height="40"/>
+                        <StackPanel Orientation="Vertical" Grid.Row="2" Margin="5">
+                            <TextBlock Text="Количество заказов:" />
+                            <TextBlock Text="{Binding TotalOrders}" Margin="5,0" />
+
+                            <TextBlock Text="Общая сумма заказов:"  Margin="0"/>
+                            <TextBlock Text="{Binding TotalAmount}" Margin="5,0"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding ReportItems}" AutoGenerateColumns="False" Background="#D5E8D4">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Дата" Binding="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" Width="100"/>
+                            <DataGridTextColumn Header="Клиент" Binding="{Binding ClientName}" Width="150"/>
+                            <DataGridTextColumn Header="Товар" Binding="{Binding ProductName}" Width="150"/>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding Quantity}" Width="80"/>
+                            <DataGridTextColumn Header="Цена" Binding="{Binding Price}" Width="100"/>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding Total}" Width="100"/>
+
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </Grid>
             </TabItem>
         </TabControl>

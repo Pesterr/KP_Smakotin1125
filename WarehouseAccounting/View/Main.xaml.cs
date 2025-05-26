@@ -27,6 +27,7 @@ namespace WarehouseAccounting.View
             InitializeComponent();
             DataContext = new ProductViewModel();
 
+
         }
 
         public ProductViewModel ProductViewModel { get; set; }
@@ -49,6 +50,7 @@ namespace WarehouseAccounting.View
             MainTabControl.DataContext = _orderViewModel;
             ProfileTabItem.DataContext = _profileViewModel;
             DataContext = this;
+            AnalyticsTabItem.DataContext = new AnalyticsViewModel();
         }
 
         private void ProductAdd(object sender, RoutedEventArgs e)
@@ -111,6 +113,11 @@ namespace WarehouseAccounting.View
         private void LoadOrders()
         {
             MainTabControl.DataContext = new OrderViewModel();
+        }
+        private void ShowOrderHistory_Click(object sender, RoutedEventArgs e)
+        {
+            var historyWindow = new OrderHistoryWindow();
+            historyWindow.Show();
         }
     }
 }

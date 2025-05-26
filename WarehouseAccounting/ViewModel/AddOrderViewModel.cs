@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 using System.Windows;
+using System.Windows.Input;
 using WarehouseAccounting.Model;
 using WarehouseAccounting.ViewModel;
 
@@ -42,8 +42,8 @@ public class AddOrderViewModel : INotifyPropertyChanged
         }
     }
 
-
     public ICommand SaveCommand { get; }
+
     private ObservableCollection<Products> _productsList;
     public ObservableCollection<Products> ProductsList
     {
@@ -57,13 +57,7 @@ public class AddOrderViewModel : INotifyPropertyChanged
 
     public AddOrderViewModel()
     {
-        var products = ProductsDB.GetDb().SelectAll();
-        if (products == null || products.Count == 0)
-        {
-            MessageBox.Show("Список товаров пуст.");
-        }
         ProductsList = new ObservableCollection<Products>(ProductsDB.GetDb().SelectAll());
-        MessageBox.Show($"Загружено товаров: {ProductsList.Count}");
         EditedOrder = new Orders();
         SaveCommand = new RelayCommand(SaveOrder);
     }
@@ -75,29 +69,24 @@ public class AddOrderViewModel : INotifyPropertyChanged
             MessageBox.Show("Имя клиента не может быть пустым.");
             return;
         }
-
         if (SelectedProduct == null)
         {
             MessageBox.Show("Выберите товар.");
             return;
         }
-
         if (Quantity <= 0)
         {
             MessageBox.Show("Количество должно быть больше нуля.");
             return;
         }
 
-        // Получаем товар
         var product = ProductsList.FirstOrDefault(p => p.product_id == SelectedProduct.product_id);
-
         if (product == null)
         {
             MessageBox.Show("Товар не найден.");
             return;
         }
 
-        // Проверяем наличие
         if (!int.TryParse(product.unit, out int stock) || Quantity > stock)
         {
             MessageBox.Show($"Недостаточно товара на складе. Доступно: {product.unit}");
@@ -107,6 +96,7 @@ public class AddOrderViewModel : INotifyPropertyChanged
         // Сохраняем данные заказа
         EditedOrder.order_product = SelectedProduct.product_id.ToString();
         EditedOrder.quantity = Quantity;
+        EditedOrder.FixedPrice = SelectedProduct.price;
 
         if (!OrdersDB.GetDb().Insert(EditedOrder))
         {
@@ -116,7 +106,6 @@ public class AddOrderViewModel : INotifyPropertyChanged
 
         // Списываем товар со склада
         product.unit = (stock - Quantity).ToString();
-
         if (!ProductsDB.GetDb().Update(product))
         {
             MessageBox.Show("Не удалось обновить остатки товара.");
@@ -124,7 +113,6 @@ public class AddOrderViewModel : INotifyPropertyChanged
         }
 
         MessageBox.Show("Заказ успешно создан!");
-
     }
 
     public event PropertyChangedEventHandler PropertyChanged;

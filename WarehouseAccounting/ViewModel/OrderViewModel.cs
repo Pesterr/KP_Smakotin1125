@@ -52,8 +52,15 @@ public class OrderViewModel : INotifyPropertyChanged
     public void LoadOrders()
     {
         var ordersFromDb = OrdersDB.GetDb().SelectAll();
+        foreach (var order in ordersFromDb)
+        {
+            order.FixedPrice = ProductsDB.GetDb().SelectAll()
+                .FirstOrDefault(p => p.product_id.ToString() == order.order_product)?.price ?? 0;
+        }
         Orders = new ObservableCollection<Orders>(ordersFromDb);
-
+        FilterOrders();
+        TotalOrders = Orders.Count;
+        TotalAmount = Orders.Sum(o => o.ProductPrice * o.quantity);
     }
 
     private void EditOrder(object param)
@@ -76,7 +83,7 @@ public class OrderViewModel : INotifyPropertyChanged
             var result = MessageBox.Show(
                 "Как удалить заказ?\n\n" +
                 "«Да» — Отменить заказ (товары вернутся на склад)\n" +
-                "«Нет» — Просто удалить заказ",
+                "«Нет» — Заказ завершен",
                 "Подтверждение удаления",
                 MessageBoxButton.YesNoCancel,
                 MessageBoxImage.Question);
@@ -104,8 +111,23 @@ public class OrderViewModel : INotifyPropertyChanged
         if (MessageBox.Show("Вы уверены, что хотите удалить этот заказ?", "Подтверждение",
                 MessageBoxButton.YesNo) == MessageBoxResult.Yes)
         {
+            // Переносим в историю
+            var historyOrder = new OrderHistory
+            {
+                client_name = order.client_name,
+                date = order.date,
+                order_product = order.order_product,
+                quantity = order.quantity,
+                fixed_price = order.FixedPrice
+            };
+
+            OrderHistoryDB.GetDb().Insert(historyOrder);
+
+            // Удаляем из основной таблицы
             OrdersDB.GetDb().Remove(order);
-            MessageBox.Show("Заказ успешно удалён.");
+
+            RefreshOrders();
+            MessageBox.Show("Заказ успешно удалён и добавлен в историю.");
         }
     }
 
@@ -151,5 +173,84 @@ public class OrderViewModel : INotifyPropertyChanged
     protected void OnPropertyChanged([CallerMemberName] string name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+    private string _searchText;
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            _searchText = value;
+            OnPropertyChanged();
+            FilterOrders(); 
+        }
+    }
+
+    private ObservableCollection<Orders> _filteredOrders;
+    public ObservableCollection<Orders> FilteredOrders
+    {
+        get => _filteredOrders;
+        set
+        {
+            _filteredOrders = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private DateTime? _selectedDate;
+    public DateTime? SelectedDate
+    {
+        get => _selectedDate;
+        set
+        {
+            _selectedDate = value;
+            OnPropertyChanged();
+            FilterOrders();
+        }
+    }
+    private void FilterOrders()
+    {
+        if (Orders == null)
+        {
+            FilteredOrders = new ObservableCollection<Orders>();
+            return;
+        }
+
+        var filtered = Orders.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            filtered = filtered.Where(o =>
+                o.client_name.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                o.ProductName.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        if (SelectedDate.HasValue)
+        {
+            filtered = filtered.Where(o => o.date.Date == SelectedDate.Value.Date);
+        }
+
+        FilteredOrders = new ObservableCollection<Orders>(filtered);
+    }
+    private int _totalOrders;
+    public int TotalOrders
+    {
+        get => _totalOrders;
+        set
+        {
+            _totalOrders = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private decimal _totalAmount;
+    public decimal TotalAmount
+    {
+        get => _totalAmount;
+        set
+        {
+            _totalAmount = value;
+            OnPropertyChanged();
+        }
     }
 }
