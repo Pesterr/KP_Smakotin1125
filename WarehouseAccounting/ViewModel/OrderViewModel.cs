@@ -52,11 +52,7 @@ public class OrderViewModel : INotifyPropertyChanged
     public void LoadOrders()
     {
         var ordersFromDb = OrdersDB.GetDb().SelectAll();
-        foreach (var order in ordersFromDb)
-        {
-            order.FixedPrice = ProductsDB.GetDb().SelectAll()
-                .FirstOrDefault(p => p.product_id.ToString() == order.order_product)?.price ?? 0;
-        }
+        
         Orders = new ObservableCollection<Orders>(ordersFromDb);
         FilterOrders();
         TotalOrders = Orders.Count;

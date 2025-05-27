@@ -67,7 +67,7 @@
                             <DataGridTextColumn Header="Имя клиента" Binding="{Binding client_name}" Width="150"/>
                             <DataGridTextColumn Header="Название товара" Binding="{Binding ProductName}" Width="150"/>
                             <DataGridTextColumn Header="Количество" Binding="{Binding quantity}" Width="100"/>
-                            <DataGridTextColumn Header="Цена товара" Binding="{Binding ProductPrice}" Width="100"/>
+                            <DataGridTextColumn Header="Цена товара" Binding="{Binding FixedPrice}" Width="100"/>
                             <DataGridTextColumn Header="Дата заказа" Binding="{Binding date, StringFormat={}{0:dd.MM.yyyy}}" Width="120"/>
                             <DataGridTextColumn Header="Сумма" Binding="{Binding Total}" Width="100"/>
                         </DataGrid.Columns>
