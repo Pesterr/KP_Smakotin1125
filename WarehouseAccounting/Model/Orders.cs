@@ -94,5 +94,6 @@ namespace WarehouseAccounting.Model
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+        public decimal TotalP => quantity * FixedPrice;
     }
 }
